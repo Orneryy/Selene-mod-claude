@@ -1,0 +1,5 @@
+{
+  "name": "selene-mod-claude",
+  "owner": { "name": "Orneryy" },
+  "plugins": [{ "name": "selene-lua", "source": "./" }]
+}
