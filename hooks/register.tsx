@@ -2,6 +2,8 @@ import type { Register, ThemeSetArgs } from 'claude-code'
 
 import { makeColors } from './make-colors.js'
 import { SCENE_DESKTOP, SCENE_MOBILE } from './scene'
+import { animateScene, dayPart } from './vida'
+import type { DayPart } from './vida'
 
 // O mundo da lua da Selene. As sete cores da imagem, da mais escura à mais clara:
 //   #0a185c  #1634aa  #2558e8  #5c86f6  #a0bcff  #e2ebff  #fafcff
@@ -39,7 +41,8 @@ const { theme, problems } = makeColors({
   },
 })
 
-const SCENE_NAME = 'mundo-da-lua'
+// O nome muda quando a cena muda de natureza: um nome novo obriga o app a pedir o desenho de novo.
+const SCENE_NAME = 'mundo-da-lua-vivo'
 
 const LOOK: ThemeSetArgs = {
   colors: theme,
@@ -50,6 +53,9 @@ const LOOK: ThemeSetArgs = {
   backdrop: { scene: SCENE_NAME, glass: { blur: 0, opacity: 0.62 } },
 }
 
+// A parte do dia que a paisagem mostra agora, para só redesenhar quando ela muda.
+let drawnPart: DayPart | undefined
+
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     const unpainted = problems.find(line => line.startsWith("Desktop won't paint"))
@@ -57,11 +63,32 @@ export const register: Register = on => {
     if (unpainted !== undefined) {
       $.ui.toast(unpainted)
     }
-    const set = await $.theme.set(LOOK)
 
-    if (!set.isDrawn) {
-      $.ui.status(set.reason)
+    // Uma versão do Claude Code anterior aos temas não tem `$.theme`, e a chamada falha:
+    // lá o mod só não pinta nada.
+    try {
+      const set = await $.theme.set(LOOK)
+
+      if (!set.isDrawn) {
+        $.ui.status(set.reason)
+      }
+      // Depois de uma recarga do mod, o tema é o mesmo: o pedido explícito garante o redesenho.
+      $.ui.invalidate('ui.render')
+    } catch {
+      $.ui.status(undefined)
     }
+
+    // Uma versão anterior deste mod abria um painel "Lua de hoje". Se ele ficou aberto
+    // numa sessão que recarregou o mod, é fechado aqui; onde não existe, nada acontece.
+    void $.ui.close({ id: 'lua-de-hoje' }).catch(() => undefined)
+
+    // De tempos em tempos confere o relógio: quando a parte do dia muda, a paisagem é
+    // redesenhada e o mascote troca de animação.
+    $.clock.every(5 * 60_000, () => {
+      if (drawnPart !== undefined && dayPart(new Date().getHours()) !== drawnPart) {
+        $.ui.invalidate('ui.render')
+      }
+    })
 
     return next(e)
   })
@@ -72,12 +99,20 @@ export const register: Register = on => {
     }
 
     const { Svg } = $.ui.resolve(e)
+    const part = dayPart(new Date().getHours())
+    drawnPart = part
 
     // No desktop, o quadro largo, com a lua no alto à direita. No celular, um
     // recorte em pé com a lua maior e centrada. Os dois prendem o topo, para a
     // lua nunca ser cortada.
-    const source = e.surface === 'mobile' ? SCENE_MOBILE : SCENE_DESKTOP
+    const scene = e.surface === 'mobile' ? SCENE_MOBILE : SCENE_DESKTOP
 
-    return <Svg source={source} alt="Lua cheia pontilhada sobre dunas azuis, o mundo da lua da Selene" />
+    return (
+      <Svg
+        source={animateScene(scene, e.surface, part)}
+        alt="Lua cheia pontilhada sobre dunas azuis, com estrelas piscando e um mascote na duna"
+        isInteractive
+      />
+    )
   })
 }

@@ -5,7 +5,7 @@ const BACKDROP = {
   component: 'Backdrop',
   requestId: 'backdrop',
   props: {
-    scene: 'mundo-da-lua',
+    scene: 'mundo-da-lua-vivo',
     plugin: 'selene-lua',
     glass: { blur: 0, opacity: 0.62 },
   },
