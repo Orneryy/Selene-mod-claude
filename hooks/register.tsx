@@ -2,8 +2,7 @@ import type { Register, ThemeSetArgs } from 'claude-code'
 
 import { makeColors } from './make-colors.js'
 import { SCENE_DESKTOP, SCENE_MOBILE } from './scene'
-import { animateScene, dayPart } from './vida'
-import type { DayPart } from './vida'
+import { animateScene } from './vida'
 
 // O mundo da lua da Selene. As sete cores da imagem, da mais escura à mais clara:
 //   #0a185c  #1634aa  #2558e8  #5c86f6  #a0bcff  #e2ebff  #fafcff
@@ -53,9 +52,6 @@ const LOOK: ThemeSetArgs = {
   backdrop: { scene: SCENE_NAME, glass: { blur: 0, opacity: 0.62 } },
 }
 
-// A parte do dia que a paisagem mostra agora, para só redesenhar quando ela muda.
-let drawnPart: DayPart | undefined
-
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     const unpainted = problems.find(line => line.startsWith("Desktop won't paint"))
@@ -78,18 +74,6 @@ export const register: Register = on => {
       $.ui.status(undefined)
     }
 
-    // Uma versão anterior deste mod abria um painel "Lua de hoje". Se ele ficou aberto
-    // numa sessão que recarregou o mod, é fechado aqui; onde não existe, nada acontece.
-    void $.ui.close({ id: 'lua-de-hoje' }).catch(() => undefined)
-
-    // De tempos em tempos confere o relógio: quando a parte do dia muda, a paisagem é
-    // redesenhada e o mascote troca de animação.
-    $.clock.every(5 * 60_000, () => {
-      if (drawnPart !== undefined && dayPart(new Date().getHours()) !== drawnPart) {
-        $.ui.invalidate('ui.render')
-      }
-    })
-
     return next(e)
   })
 
@@ -99,8 +83,6 @@ export const register: Register = on => {
     }
 
     const { Svg } = $.ui.resolve(e)
-    const part = dayPart(new Date().getHours())
-    drawnPart = part
 
     // No desktop, o quadro largo, com a lua no alto à direita. No celular, um
     // recorte em pé com a lua maior e centrada. Os dois prendem o topo, para a
@@ -109,8 +91,8 @@ export const register: Register = on => {
 
     return (
       <Svg
-        source={animateScene(scene, e.surface, part)}
-        alt="Lua cheia pontilhada sobre dunas azuis, com estrelas piscando e um mascote na duna"
+        source={animateScene(scene, e.surface)}
+        alt="Lua cheia pontilhada sobre dunas azuis, com estrelas piscando e um halo que pulsa"
         isInteractive
       />
     )
