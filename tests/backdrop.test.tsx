@@ -1,11 +1,13 @@
 import { expect, test } from 'claude-code/testing'
 
+import { SCENE_DESKTOP, SCENE_MOBILE } from '../hooks/scene'
+
 const BACKDROP = {
   plugin: 'selene-lua',
   component: 'Backdrop',
   requestId: 'backdrop',
   props: {
-    scene: 'mundo-da-lua-vivo',
+    scene: 'mundo-da-lua',
     plugin: 'selene-lua',
     glass: { blur: 0, opacity: 0.62 },
   },
@@ -18,5 +20,14 @@ test('a cena do mundo da lua é desenhada no desktop e no celular', async $ => {
 
     expect(svg === undefined).toBe(false)
     await ui.unmount()
+  }
+})
+
+test('o fundo é a paisagem parada: sem animação e sem imagem embutida', () => {
+  for (const svg of [SCENE_DESKTOP, SCENE_MOBILE]) {
+    expect(svg.length < 131_072).toBe(true)
+    expect(svg.includes('<image')).toBe(false)
+    expect(svg.includes('@keyframes')).toBe(false)
+    expect(svg.includes('<animate')).toBe(false)
   }
 })

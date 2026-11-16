@@ -2,7 +2,6 @@ import type { Register, ThemeSetArgs } from 'claude-code'
 
 import { makeColors } from './make-colors.js'
 import { SCENE_DESKTOP, SCENE_MOBILE } from './scene'
-import { animateScene } from './vida'
 
 // O mundo da lua da Selene. As sete cores da imagem, da mais escura à mais clara:
 //   #0a185c  #1634aa  #2558e8  #5c86f6  #a0bcff  #e2ebff  #fafcff
@@ -41,7 +40,7 @@ const { theme, problems } = makeColors({
 })
 
 // O nome muda quando a cena muda de natureza: um nome novo obriga o app a pedir o desenho de novo.
-const SCENE_NAME = 'mundo-da-lua-vivo'
+const SCENE_NAME = 'mundo-da-lua'
 
 const LOOK: ThemeSetArgs = {
   colors: theme,
@@ -91,9 +90,8 @@ export const register: Register = on => {
 
     return (
       <Svg
-        source={animateScene(scene, e.surface)}
-        alt="Lua cheia pontilhada sobre dunas azuis, com estrelas piscando e um halo que pulsa"
-        isInteractive
+        source={scene}
+        alt="Lua cheia pontilhada sobre dunas azuis, o mundo da lua da Selene"
       />
     )
   })
