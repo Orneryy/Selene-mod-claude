@@ -52,4 +52,4 @@ A atualização vale para as sessões iniciadas depois dela.
 
 - As cores ficam em `hooks/register.tsx`.
 - O quanto os painéis cobrem a paisagem é o `opacity` de `backdrop.glass`, no mesmo arquivo: um valor menor mostra mais a imagem, um maior deixa o texto mais firme.
-- `hooks/scene.ts` é gerado e não deve ser editado à mão. A paisagem vai como vetor puro, sem imagem embutida: o pontilhado é refeito por 96 regiões, cada uma preenchida por um padrão que pinta uma das 16 células de um ladrilho 4 × 4 em um dos tons.
+- `hooks/scene.ts` é gerado e não deve ser editado à mão. A paisagem vai como vetor puro, sem imagem embutida: é o pontilhado exato da imagem, célula por célula (512 × 288 no computador, 288 × 480 no celular), refeito por 96 regiões traçadas na grade dos ladrilhos 4 × 4, cada uma preenchida por um padrão que pinta uma das 16 células do ladrilho em um dos tons.
